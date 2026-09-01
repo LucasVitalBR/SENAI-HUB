@@ -1,0 +1,8 @@
+{
+  "name": "Remix: SENAI Naviraí Hub 2",
+  "description": "Painel integrado de gerenciamento de horários de instrutores, alocações de laboratórios, comunicados e testes integrados para o SENAI de Naviraí.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
