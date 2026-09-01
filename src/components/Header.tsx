@@ -113,7 +113,7 @@ export default function Header({
         </div>
 
         {/* User simulation selector dropdown */}
-        <div className="user-sim-selector" onClick={(e) => e.stopPropagation()}>
+        <div className={`user-sim-selector ${dropdownOpen ? 'open' : ''}`} onClick={(e) => e.stopPropagation()}>
           <div 
             className="dropdown-trigger" 
             id="dropdown-trigger"
@@ -129,7 +129,7 @@ export default function Header({
           </div>
 
           {/* Dropdown Menu */}
-          <div className={`dropdown-menu ${dropdownOpen ? 'open' : ''}`} id="dropdown-menu">
+          <div className="dropdown-menu" id="dropdown-menu">
             <div className="dropdown-header">
               Simular Usuário
               {userEmail && (

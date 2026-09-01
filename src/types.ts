@@ -49,6 +49,27 @@ export interface SimulatedWeek {
   monthYear: string;
 }
 
+export interface Person {
+  id: string;
+  full_name: string;
+  permission_role: string;
+  job_title: string | null;
+  area: string | null;
+  initials: string | null;
+  user_id: string | null;
+}
+
+export interface Unidade {
+  id: number;
+  nome: string;
+  endereco: string | null;
+  telefones: string | null;
+  horario_funcionamento: string | null;
+  horario_administrativo: string | null;
+  coordenador_geral: string | null;
+  missao: string | null;
+}
+
 export interface ColumnMap {
   date: number;
   time: number;

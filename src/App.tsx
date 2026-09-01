@@ -67,10 +67,10 @@ export default function App() {
     return <Login />;
   }
 
-  return <Dashboard userEmail={session.user.email ?? ''} />;
+  return <Dashboard userEmail={session.user.email ?? ''} userId={session.user.id} />;
 }
 
-function Dashboard({ userEmail }: { userEmail: string }) {
+function Dashboard({ userEmail, userId }: { userEmail: string; userId: string }) {
   // Navigation & Active View State
   const [activeTab, setActiveTab] = useState('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(window.innerWidth > 768);
@@ -78,6 +78,75 @@ function Dashboard({ userEmail }: { userEmail: string }) {
   // Profile & Simulated Calendar State
   const [currentUserKey, setCurrentUserKey] = useState('lucas');
   const [profiles, setProfiles] = useState<Record<string, UserProfile>>(DEFAULT_USER_PROFILES);
+
+  // Load real team members ("people") from Supabase and use them as the
+  // profile list instead of the hardcoded DEFAULT_USER_PROFILES.
+  useEffect(() => {
+    let cancelled = false;
+
+    supabase
+      .from('people')
+      .select('id, full_name, permission_role, job_title, area, initials, user_id')
+      .order('full_name', { ascending: true })
+      .then(({ data, error }) => {
+        if (cancelled) return;
+        if (error || !data || data.length === 0) {
+          if (error) console.error('Erro ao buscar pessoas:', error.message);
+          return;
+        }
+
+        const roleLabels: Record<string, string> = {
+          administrador: 'Administrador',
+          coordenador: 'Coordenador',
+          instrutor: 'Instrutor',
+          secretaria: 'Secretaria',
+          financeiro: 'Financeiro',
+          comercial: 'Comercial',
+          estagiario: 'Estagiário',
+          manutencao: 'Manutenção',
+        };
+
+        const fetchedProfiles: Record<string, UserProfile> = {};
+        let matchedKey: string | null = null;
+
+        data.forEach((person) => {
+          // Reuse a mock schedule from the old hardcoded list when the name
+          // matches, so instructors we already had demo data for keep it.
+          const legacyMatch = Object.values(DEFAULT_USER_PROFILES).find(
+            (p) => p.name.trim().toLowerCase() === person.full_name.trim().toLowerCase()
+          );
+
+          const roleLabel = roleLabels[person.permission_role] || person.permission_role;
+          const tag = person.job_title
+            ? person.area
+              ? `${person.job_title} - ${person.area}`
+              : person.job_title
+            : roleLabel;
+
+          fetchedProfiles[person.id] = {
+            name: person.full_name,
+            role: roleLabel,
+            tag,
+            discipline: person.area || person.job_title || '',
+            avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(person.full_name)}`,
+            initials: person.initials || person.full_name.slice(0, 2).toUpperCase(),
+            schedule: legacyMatch?.schedule || { current: {}, next: {} },
+          };
+
+          if (person.user_id === userId) {
+            matchedKey = person.id;
+          }
+        });
+
+        setProfiles(fetchedProfiles);
+        const firstKey = Object.keys(fetchedProfiles)[0];
+        setCurrentUserKey(matchedKey || firstKey || 'lucas');
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [userId]);
   
   // Infinite calendar selection (Junho, Julho, Agosto de 2026)
   const [selectedMonth, setSelectedMonth] = useState<'Junho' | 'Julho' | 'Agosto'>(() => {
